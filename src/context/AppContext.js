@@ -162,7 +162,7 @@ export function AppProvider({ children }) {
       const notf = await sq(supabase.from('notifications').select('*').eq('user_id', uid).order('created_at', { ascending: false }).limit(50));
       const trp  = await sq(supabase.from('trips').select('*').order('created_at', { ascending: false }));
       const bk   = await sq(supabase.from('bookings').select('*').or(`user_id.eq.${uid},guide_id.eq.${uid}`).order('created_at', { ascending: false }));
-      const usr  = await sq(supabase.from('profiles').select('id, name, email, role, bio, avatar_url, dm_open, guide_score, followers, following, itinerary_count, created_at'));
+      const usr  = await sq(supabase.from('profiles').select('id, name, email, role, bio, avatar_url, dm_open, guide_score, followers, following, itinerary_count, created_at, username, messaging_visible'));
       // pending_locations is optional — table may not exist yet, silently skip
       const pend = await sq(supabase.from('pending_locations').select('*').order('created_at', { ascending: false })).catch(() => ({ data: null, error: null }));
 
@@ -344,18 +344,71 @@ export function AppProvider({ children }) {
   const getItineraryReviews = (iid) => reviews.filter(r => r.itineraryId === iid);
 
   // ── MESSAGES ─────────────────────────────────────────────────────────────
-  const sendMessage = async ({ toUserId, text }) => {
+  const sendMessage = async ({ toUserId, text, attachmentType, attachmentId, attachmentData }) => {
     const to = users.find(u => u.id === toUserId);
     if (!to) throw new Error('User not found');
-    if (!to.dmOpen && to.role !== 'tourguide') throw new Error('This user has not opened DMs');
+    // Respect messaging_visible — if recipient has turned it off, no messages
+    if (to.messagingVisible === false) throw new Error('This user has turned off messaging');
+    // My own visibility — if I turned off visibility I can't initiate either
+    if (currentUser.messagingVisible === false) throw new Error('You have disabled messaging. Enable it in Settings to send messages.');
+
+    // Content moderation — clean profanity before sending
+    let cleanText = text || '';
+    try {
+      const { Filter } = require('bad-words');
+      const filter = new Filter();
+      cleanText = filter.clean(cleanText);
+    } catch {}
+
     const { data, error } = await supabase.from('messages').insert({
       from_id: currentUser.id, from_name: currentUser.name,
-      to_id: toUserId, to_name: to.name, text,
+      to_id: toUserId, to_name: to.name,
+      text: cleanText,
+      attachment_type: attachmentType || null,
+      attachment_id: attachmentId || null,
+      attachment_data: attachmentData || null,
     }).select().single();
     if (error) throw new Error(error.message);
     const msg = toCamel(data);
     setMessages(prev => [...prev, msg]);
     return msg;
+  };
+
+  // Search users by @username or display name. Respects messaging_visible.
+  const searchUsers = (query) => {
+    if (!query || query.length < 2) return [];
+    const q = query.toLowerCase().replace(/^@/, '');
+    return users.filter(u =>
+      u.id !== currentUser?.id &&
+      u.messagingVisible !== false &&
+      (
+        (u.username && u.username.toLowerCase().includes(q)) ||
+        u.name.toLowerCase().includes(q)
+      )
+    ).slice(0, 20);
+  };
+
+  const updateUsername = async (username) => {
+    const cleaned = (username || '').toLowerCase().replace(/[^a-z0-9_]/g, '').slice(0, 30);
+    if (!cleaned) throw new Error('Invalid username — use letters, numbers and underscores only');
+    const { data, error } = await supabase.from('profiles').update({ username: cleaned }).eq('id', currentUser.id).select().single();
+    if (error) {
+      if (error.message?.includes('unique') || error.code === '23505') throw new Error('That username is already taken');
+      throw new Error(error.message);
+    }
+    const updated = toCamel(data);
+    setCurrentUser(updated);
+    setUsers(prev => prev.map(u => u.id === currentUser.id ? updated : u));
+    return updated;
+  };
+
+  const updateMessagingVisibility = async (visible) => {
+    const { data, error } = await supabase.from('profiles').update({ messaging_visible: visible }).eq('id', currentUser.id).select().single();
+    if (error) throw new Error(error.message);
+    const updated = toCamel(data);
+    setCurrentUser(updated);
+    setUsers(prev => prev.map(u => u.id === currentUser.id ? updated : u));
+    return updated;
   };
 
   const getConversations = () => {
@@ -369,7 +422,18 @@ export function AppProvider({ children }) {
         lastMsg: thread[thread.length - 1],
         unread: thread.filter(m => m.toId === currentUser.id && !m.read).length,
       };
+    }).sort((a, b) => {
+      const ta = a.lastMsg?.createdAt || 0;
+      const tb = b.lastMsg?.createdAt || 0;
+      return new Date(tb) - new Date(ta);
     });
+  };
+
+  const markThreadRead = async (partnerId) => {
+    await sq(supabase.from('messages').update({ read: true }).eq('to_id', currentUser.id).eq('from_id', partnerId).eq('read', false));
+    setMessages(prev => prev.map(m =>
+      m.toId === currentUser.id && m.fromId === partnerId ? { ...m, read: true } : m
+    ));
   };
 
   const getThread = (pid) => {
@@ -529,7 +593,8 @@ export function AppProvider({ children }) {
       createItinerary, updateItinerary, deleteItinerary,
       getPublicItineraries, getUserItineraries, getItineraryById, canAccess,
       addReview, likeReview, getPlaceReviews, getItineraryReviews,
-      sendMessage, getConversations, getThread,
+      sendMessage, getConversations, getThread, markThreadRead,
+      searchUsers, updateUsername, updateMessagingVisibility,
       followUser, isFollowing,
       createTrip, updateTrip, startTrip, updateActivity, endTrip, getTripBookings,
       bookTrip,

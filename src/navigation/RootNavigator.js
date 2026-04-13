@@ -15,6 +15,7 @@ import { FeedScreen, MyItinerariesScreen, CreateItineraryScreen, ItineraryDetail
 import { AddReviewScreen } from '../screens/reviews/AddReviewScreen';
 import { SubmitLocationScreen, CommunityLocationsScreen } from '../screens/explore/CommunityLocationsScreen';
 import { ProfileScreen, UserProfileScreen, MessagesInboxScreen, MessageThreadScreen, EditProfileScreen } from '../screens/profile/ProfileScreens';
+import { AttachPickerScreen } from '../screens/profile/AttachPickerScreen';
 import { NotificationsScreen } from '../screens/profile/NotificationsScreen';
 import { PaywallScreen, ManageSubscriptionScreen } from '../screens/payment/SubscriptionScreens';
 import { TripsMarketplaceScreen, TripDetailScreen, CreateTripScreen } from '../screens/trips/TripScreens';
@@ -44,6 +45,7 @@ function Shared(Nav) {
       <Nav.Screen name="CommunityLocations" component={CommunityLocationsScreen} />
       <Nav.Screen name="SubmitLocation"     component={SubmitLocationScreen} />
       <Nav.Screen name="ConfirmLocation"    component={CommunityLocationsScreen} />
+      <Nav.Screen name="AttachPicker"        component={AttachPickerScreen} />
     </>
   );
 }
