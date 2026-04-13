@@ -38,4 +38,11 @@ yarn-error.*
 
 # generated native folders
 /ios
-/android
+
+# Android — keep native code in git for bare workflow builds
+# Ignore only build artifacts and sensitive files
+android/app/build/
+android/build/
+android/.gradle/
+android/app/*.keystore
+android/local.properties
