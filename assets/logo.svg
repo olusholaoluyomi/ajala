@@ -1,0 +1,65 @@
+<svg width="1024" height="1024" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background circle -->
+  <circle cx="512" cy="512" r="512" fill="#C8813A"/>
+  
+  <!-- Inner warm gradient circle -->
+  <defs>
+    <radialGradient id="bg" cx="40%" cy="35%" r="65%">
+      <stop offset="0%" stop-color="#E8A86A"/>
+      <stop offset="100%" stop-color="#A0612A"/>
+    </radialGradient>
+    <radialGradient id="globe" cx="45%" cy="40%" r="60%">
+      <stop offset="0%" stop-color="#FDF3E7" stop-opacity="0.15"/>
+      <stop offset="100%" stop-color="#FDF3E7" stop-opacity="0.03"/>
+    </radialGradient>
+  </defs>
+  <circle cx="512" cy="512" r="512" fill="url(#bg)"/>
+  
+  <!-- Globe outline -->
+  <circle cx="512" cy="490" r="240" fill="url(#globe)" stroke="#FDF3E7" stroke-width="8" stroke-opacity="0.6"/>
+  
+  <!-- Globe latitude lines -->
+  <ellipse cx="512" cy="490" rx="240" ry="80" fill="none" stroke="#FDF3E7" stroke-width="4" stroke-opacity="0.3"/>
+  <ellipse cx="512" cy="490" rx="240" ry="150" fill="none" stroke="#FDF3E7" stroke-width="4" stroke-opacity="0.2"/>
+  
+  <!-- Globe longitude line (vertical) -->
+  <line x1="512" y1="250" x2="512" y2="730" stroke="#FDF3E7" stroke-width="4" stroke-opacity="0.3"/>
+  
+  <!-- Globe longitude arc (curved) -->
+  <path d="M 380 250 Q 310 490 380 730" fill="none" stroke="#FDF3E7" stroke-width="4" stroke-opacity="0.3"/>
+  <path d="M 644 250 Q 714 490 644 730" fill="none" stroke="#FDF3E7" stroke-width="4" stroke-opacity="0.3"/>
+  
+  <!-- Flight path arc across globe -->
+  <path d="M 300 560 Q 512 280 724 420" 
+        fill="none" stroke="#FDF3E7" stroke-width="9" stroke-linecap="round"
+        stroke-dasharray="18,12"/>
+  
+  <!-- Airplane icon at end of flight path -->
+  <g transform="translate(700, 390) rotate(-35)">
+    <path d="M0,0 L28,-10 L32,0 L28,10 Z" fill="#FDF3E7"/>
+    <path d="M10,-4 L18,-14 L22,-12 L16,-2 Z" fill="#FDF3E7"/>
+    <path d="M10,4 L18,14 L22,12 L16,2 Z" fill="#FDF3E7"/>
+    <path d="M4,0 L-2,-5 L-4,-4 L-1,0 L-4,4 L-2,5 Z" fill="#FDF3E7"/>
+  </g>
+  
+  <!-- Departure dot -->
+  <circle cx="300" cy="560" r="10" fill="#FDF3E7"/>
+  
+  <!-- AJALA text -->
+  <text x="512" y="830" 
+        font-family="Georgia, serif" 
+        font-size="148" 
+        font-weight="bold"
+        fill="#FDF3E7" 
+        text-anchor="middle"
+        letter-spacing="18">AJALA</text>
+  
+  <!-- Tagline -->
+  <text x="512" y="890" 
+        font-family="Georgia, serif" 
+        font-size="38" 
+        fill="#FDF3E7" 
+        text-anchor="middle"
+        letter-spacing="6"
+        opacity="0.8">THE TRAVELLER</text>
+</svg>

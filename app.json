@@ -1,0 +1,47 @@
+{
+  "expo": {
+    "name": "Ajala",
+    "slug": "ajala",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "newArchEnabled": true,
+    "splash": {
+      "image": "./assets/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#1B4332"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.ajala.travel",
+      "infoPlist": {
+        "NSPhotoLibraryUsageDescription": "Ajala needs access to your photos to add pictures to your travel reviews.",
+        "NSCameraUsageDescription": "Ajala uses your camera so you can take photos for your travel reviews.",
+        "NSLocationWhenInUseUsageDescription": "Ajala uses your location on the map."
+      }
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#1B4332"
+      },
+      "package": "com.ajala.travel",
+      "permissions": ["READ_MEDIA_IMAGES", "CAMERA", "VIBRATE"],
+      "intentFilters": [
+        {
+          "action": "VIEW",
+          "autoVerify": true,
+          "data": [{ "scheme": "ajala" }],
+          "category": ["BROWSABLE", "DEFAULT"]
+        }
+      ]
+    },
+    "web": { "favicon": "./assets/favicon.png" },
+    "plugins": [
+      "expo-image-picker",
+      ["expo-notifications", { "icon": "./assets/icon.png", "color": "#C8813A" }]
+    ],
+    "scheme": "ajala"
+  }
+}
