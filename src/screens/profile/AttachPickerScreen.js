@@ -120,11 +120,11 @@ const s = StyleSheet.create({
     borderBottomColor: '#F0EBE3',
   },
   backBtn: { padding: 4 },
-  backText: { color: Colors.primary, fontSize: Typography.sizes.sm, fontWeight: Typography.weights.semiBold },
+  backText: { color: Colors.primary, fontSize: Typography.sizes.sm, fontWeight: Typography.weights.semibold },
   headerTitle: {
     fontSize: Typography.sizes.md,
     fontWeight: Typography.weights.bold,
-    color: Colors.text,
+    color: Colors.textPrimary,
   },
   empty: {
     flex: 1,
@@ -148,8 +148,8 @@ const s = StyleSheet.create({
   },
   cardIcon: { fontSize: 36 },
   cardBody: { flex: 1, gap: 2 },
-  cardTitle: { fontSize: Typography.sizes.sm, fontWeight: Typography.weights.semiBold, color: Colors.text },
+  cardTitle: { fontSize: Typography.sizes.sm, fontWeight: Typography.weights.semibold, color: Colors.text },
   cardMeta:  { fontSize: Typography.sizes.xs, color: Colors.textMuted },
-  cardPrice: { fontSize: Typography.sizes.xs, fontWeight: Typography.weights.semiBold, color: Colors.primary },
+  cardPrice: { fontSize: Typography.sizes.xs, fontWeight: Typography.weights.semibold, color: Colors.primary },
   cardArrow: { fontSize: 18, color: Colors.primary },
 });

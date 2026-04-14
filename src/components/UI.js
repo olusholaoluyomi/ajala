@@ -34,19 +34,21 @@ export function Button({ title, onPress, variant = 'primary', size = 'md', loadi
 const buttonStyles = StyleSheet.create({
   base: { borderRadius: Radius.md, alignItems: 'center', justifyContent: 'center' },
   row: { flexDirection: 'row', alignItems: 'center' },
-  primary: { backgroundColor: Colors.primary },
+  primary:   { backgroundColor: Colors.primary },
   secondary: { backgroundColor: Colors.surface, borderWidth: 1.5, borderColor: Colors.primary },
-  ghost: { backgroundColor: 'transparent' },
-  danger: { backgroundColor: Colors.error },
-  accent: { backgroundColor: Colors.accent },
-  primaryText: { color: Colors.textInverse, fontSize: Typography.sizes.md, fontWeight: Typography.weights.semibold },
-  secondaryText: { color: Colors.primary, fontSize: Typography.sizes.md, fontWeight: Typography.weights.semibold },
-  ghostText: { color: Colors.primary, fontSize: Typography.sizes.md, fontWeight: Typography.weights.medium },
-  dangerText: { color: Colors.textInverse, fontSize: Typography.sizes.md, fontWeight: Typography.weights.semibold },
-  accentText: { color: Colors.textInverse, fontSize: Typography.sizes.md, fontWeight: Typography.weights.semibold },
+  ghost:     { backgroundColor: 'transparent' },
+  danger:    { backgroundColor: Colors.error },
+  accent:    { backgroundColor: Colors.accent },
+  gold:      { backgroundColor: Colors.gold },
+  primaryText:   { color: Colors.textInverse, fontSize: Typography.sizes.md, fontWeight: Typography.weights.semibold },
+  secondaryText: { color: Colors.primary,     fontSize: Typography.sizes.md, fontWeight: Typography.weights.semibold },
+  ghostText:     { color: Colors.primary,     fontSize: Typography.sizes.md, fontWeight: Typography.weights.medium },
+  dangerText:    { color: Colors.textInverse, fontSize: Typography.sizes.md, fontWeight: Typography.weights.semibold },
+  accentText:    { color: Colors.textInverse, fontSize: Typography.sizes.md, fontWeight: Typography.weights.semibold },
+  goldText:      { color: Colors.textInverse, fontSize: Typography.sizes.md, fontWeight: Typography.weights.semibold },
   size_sm: { paddingHorizontal: 12, paddingVertical: 8 },
   size_md: { paddingHorizontal: Spacing.lg, paddingVertical: 13 },
-  size_lg: { paddingHorizontal: Spacing.xl, paddingVertical: 16 },
+  size_lg: { paddingHorizontal: Spacing.xl, paddingVertical: 17 },
   disabled: { opacity: 0.5 },
 });
 
@@ -196,18 +198,39 @@ const emptyStyles = StyleSheet.create({
 export function LoadingScreen() {
   return (
     <View style={loadingStyles.container}>
+      {/* Diagonal stripe texture */}
+      {Array.from({ length: 14 }, (_, i) => (
+        <View
+          key={i}
+          style={{
+            position: 'absolute', top: -100, bottom: -100,
+            left: i * 52 - 12, width: 20,
+            backgroundColor: '#C1440E', opacity: 0.05,
+            transform: [{ rotate: '22deg' }],
+          }}
+        />
+      ))}
+
       <View style={loadingStyles.inner}>
-        <View style={loadingStyles.logoCircle}>
-          <Text style={loadingStyles.logoEmoji}>🌍</Text>
+        {/* Outer adinkra-inspired ring */}
+        <View style={loadingStyles.outerRing}>
+          <View style={loadingStyles.innerRing}>
+            <View style={loadingStyles.logoCircle}>
+              <Text style={{ fontSize: 14, color: '#D4921C' }}>✦</Text>
+            </View>
+          </View>
         </View>
+
         <Text style={loadingStyles.brand}>Ajala</Text>
         <Text style={loadingStyles.tagline}>The world is yours to explore</Text>
+
         <View style={loadingStyles.dotsRow}>
-          <View style={[loadingStyles.dot, { opacity: 1 }]} />
-          <View style={[loadingStyles.dot, { opacity: 0.6 }]} />
-          <View style={[loadingStyles.dot, { opacity: 0.3 }]} />
+          <View style={[loadingStyles.dot, { opacity: 1,   backgroundColor: '#D4921C' }]} />
+          <View style={[loadingStyles.dot, { opacity: 0.6, backgroundColor: '#C05A1A' }]} />
+          <View style={[loadingStyles.dot, { opacity: 0.3, backgroundColor: '#2D6A4F' }]} />
         </View>
       </View>
+
       <Text style={loadingStyles.footer}>Ajala Travel · Explore · Discover</Text>
     </View>
   );
@@ -216,53 +239,44 @@ export function LoadingScreen() {
 const loadingStyles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.primaryDark,
+    backgroundColor: '#0D0907',
     alignItems: 'center',
     justifyContent: 'center',
     paddingBottom: 60,
+    overflow: 'hidden',
   },
-  inner: { alignItems: 'center' },
+  inner: { alignItems: 'center', zIndex: 1 },
+  outerRing: {
+    width: 120, height: 120, borderRadius: 60,
+    borderWidth: 1.5, borderColor: 'rgba(212,146,28,0.25)',
+    alignItems: 'center', justifyContent: 'center',
+    marginBottom: 28,
+  },
+  innerRing: {
+    width: 96, height: 96, borderRadius: 48,
+    borderWidth: 1, borderColor: 'rgba(212,146,28,0.15)',
+    alignItems: 'center', justifyContent: 'center',
+  },
   logoCircle: {
-    width: 96,
-    height: 96,
-    borderRadius: 48,
-    backgroundColor: 'rgba(255,255,255,0.12)',
-    borderWidth: 1.5,
-    borderColor: 'rgba(255,255,255,0.2)',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 24,
+    width: 72, height: 72, borderRadius: 36,
+    backgroundColor: 'rgba(212,146,28,0.12)',
+    borderWidth: 1.5, borderColor: 'rgba(212,146,28,0.35)',
+    alignItems: 'center', justifyContent: 'center',
   },
-  logoEmoji: { fontSize: 48 },
   brand: {
-    fontSize: 42,
-    fontFamily: 'Georgia',
-    color: '#FFFFFF',
-    fontWeight: 'bold',
-    letterSpacing: 3,
-    marginBottom: 8,
+    fontSize: 44, fontFamily: 'Georgia', color: '#FFFFFF',
+    fontWeight: 'bold', letterSpacing: 4, marginBottom: 8,
   },
   tagline: {
-    fontSize: 14,
-    color: 'rgba(255,255,255,0.55)',
-    letterSpacing: 1,
-    textTransform: 'uppercase',
-    marginBottom: 40,
+    fontSize: 11, color: 'rgba(255,255,255,0.45)',
+    letterSpacing: 2, textTransform: 'uppercase', marginBottom: 40,
   },
-  dotsRow: { flexDirection: 'row', gap: 8 },
-  dot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: Colors.primaryLight,
-  },
+  dotsRow: { flexDirection: 'row', gap: 10 },
+  dot: { width: 9, height: 9, borderRadius: 5 },
   footer: {
-    position: 'absolute',
-    bottom: 32,
-    fontSize: 11,
-    color: 'rgba(255,255,255,0.25)',
-    letterSpacing: 1.5,
-    textTransform: 'uppercase',
+    position: 'absolute', bottom: 32,
+    fontSize: 10, color: 'rgba(255,255,255,0.2)',
+    letterSpacing: 2, textTransform: 'uppercase', zIndex: 1,
   },
 });
 
@@ -271,7 +285,7 @@ export function RoleBadge({ role }) {
   if (role === 'tourguide') {
     return <Badge label="🧭 Tour Guide" color={Colors.tourGuideLight} textColor={Colors.tourGuide} />;
   }
-  return <Badge label="🌍 Explorer" color={Colors.primaryFaint} textColor={Colors.primary} />;
+  return <Badge label="✦ Explorer" color={Colors.primaryFaint} textColor={Colors.primary} />;
 }
 
 // --- DIVIDER ---
