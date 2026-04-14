@@ -3,10 +3,12 @@ import { View, Text, StyleSheet } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { AppContext, useApp } from '../context/AppContext';
 import { Colors } from '../utils/theme';
 import { LoadingScreen } from '../components/UI';
 
+import { OnboardingScreen } from '../screens/onboarding/OnboardingScreen';
 import { LoginScreen, RegisterScreen } from '../screens/auth/AuthScreens';
 import { ExploreScreen, CountryDetailScreen } from '../screens/explore/ExploreScreens';
 import { PlaceDetailScreen } from '../screens/explore/PlaceDetailScreen';
@@ -147,7 +149,20 @@ function Tabs() {
 
 export function RootNavigator() {
   const { currentUser, loading } = useApp();
-  if (loading) return <LoadingScreen />;
+  const [checkingOnboarding, setCheckingOnboarding] = React.useState(true);
+  const [onboardingDone, setOnboardingDone]         = React.useState(false);
+
+  React.useEffect(() => {
+    AsyncStorage.getItem('ajala_onboarding_done')
+      .then(val => {
+        setOnboardingDone(!!val);
+        setCheckingOnboarding(false);
+      })
+      .catch(() => setCheckingOnboarding(false));
+  }, []);
+
+  if (loading || checkingOnboarding) return <LoadingScreen />;
+
   return (
     <NavigationContainer>
       <Stack.Navigator screenOptions={{ headerShown: false }}>
@@ -155,6 +170,9 @@ export function RootNavigator() {
           <Stack.Screen name="Main" component={Tabs} />
         ) : (
           <>
+            {!onboardingDone && (
+              <Stack.Screen name="Onboarding" component={OnboardingScreen} />
+            )}
             <Stack.Screen name="Login"    component={LoginScreen} />
             <Stack.Screen name="Register" component={RegisterScreen} />
           </>
@@ -165,7 +183,7 @@ export function RootNavigator() {
 }
 
 const st = StyleSheet.create({
-  bar:      { backgroundColor: Colors.surface, borderTopColor: '#F0EBE3', borderTopWidth: 1, paddingTop: 8, paddingBottom: 8, height: 70 },
+  bar:      { backgroundColor: Colors.surface, borderTopColor: Colors.borderLight, borderTopWidth: 1, paddingTop: 8, paddingBottom: 8, height: 70 },
   label:    { fontSize: 11, fontWeight: '600', marginTop: 2 },
   badge:    { position: 'absolute', top: -2, right: -6, backgroundColor: '#E63946', borderRadius: 8, minWidth: 16, height: 16, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 3 },
   badgeText:{ color: '#fff', fontSize: 9, fontWeight: 'bold' },
