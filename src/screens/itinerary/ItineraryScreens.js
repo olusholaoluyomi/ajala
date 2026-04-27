@@ -1,13 +1,63 @@
 import React, { useState } from 'react';
 import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity,
-  FlatList, TextInput, Alert, Switch, Image
+  FlatList, TextInput, Alert, Switch, Image,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useApp } from '../../context/AppContext';
 import { WORLD_DATA, getCountryById, getPlaceById } from '../../data/worldData';
 import { Button, Card, StarRating, EmptyState, Avatar, RoleBadge, Badge, Divider, Input, SectionHeader } from '../../components/UI';
 import { Colors, Typography, Spacing, Radius, Shadow } from '../../utils/theme';
+
+// ── SHARED DARK HERO HEADER ───────────────────────────────────────────────────
+function DarkHeroPattern({ color = '#C1440E', opacity = 0.055 }) {
+  return (
+    <View style={StyleSheet.absoluteFillObject} pointerEvents="none">
+      {Array.from({ length: 16 }, (_, i) => (
+        <View
+          key={i}
+          style={{
+            position: 'absolute', top: -80, bottom: -80,
+            left: i * 38 - 10, width: 18,
+            backgroundColor: color, opacity,
+            transform: [{ rotate: '22deg' }],
+          }}
+        />
+      ))}
+    </View>
+  );
+}
+
+function ScreenHero({ title, subtitle, right, accent = '#C1440E' }) {
+  return (
+    <View style={heroS.hero}>
+      <DarkHeroPattern color={accent} />
+      <View style={heroS.row}>
+        <View style={{ flex: 1 }}>
+          <Text style={heroS.title}>{title}</Text>
+          {subtitle ? <Text style={heroS.sub}>{subtitle}</Text> : null}
+        </View>
+        {right}
+      </View>
+    </View>
+  );
+}
+
+const heroS = StyleSheet.create({
+  hero: {
+    backgroundColor: Colors.darkWarm,
+    paddingHorizontal: Spacing.lg,
+    paddingTop: Spacing.sm,
+    paddingBottom: Spacing.lg,
+    overflow: 'hidden',
+    borderBottomLeftRadius: 28,
+    borderBottomRightRadius: 28,
+    ...Shadow.md,
+  },
+  row: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between' },
+  title: { fontSize: 32, fontFamily: 'Georgia', fontWeight: '800', color: '#FFFFFF', marginBottom: 4 },
+  sub:   { fontSize: 13, color: 'rgba(255,255,255,0.5)', letterSpacing: 0.3 },
+});
 
 // My Itineraries List
 export function MyItinerariesScreen({ navigation }) {
@@ -16,24 +66,25 @@ export function MyItinerariesScreen({ navigation }) {
 
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
-      <View style={styles.header}>
-        <View>
-          <Text style={styles.headerTitle}>My Itineraries</Text>
-          <Text style={styles.headerSub}>{myItineraries.length} trips planned</Text>
-        </View>
-        <TouchableOpacity
-          style={styles.addBtn}
-          onPress={() => navigation.navigate('CreateItinerary', {})}
-          activeOpacity={0.8}
-        >
-          <Text style={styles.addBtnText}>+ New</Text>
-        </TouchableOpacity>
-      </View>
+      <ScreenHero
+        title="My Itineraries"
+        subtitle={`${myItineraries.length} trip${myItineraries.length !== 1 ? 's' : ''} planned`}
+        accent="#D4921C"
+        right={
+          <TouchableOpacity
+            style={styles.addBtn}
+            onPress={() => navigation.navigate('CreateItinerary', {})}
+            activeOpacity={0.8}
+          >
+            <Text style={styles.addBtnText}>+ New</Text>
+          </TouchableOpacity>
+        }
+      />
 
       <FlatList
         data={myItineraries}
         keyExtractor={i => i.id}
-        contentContainerStyle={{ padding: Spacing.md, paddingBottom: 100 }}
+        contentContainerStyle={{ padding: Spacing.md, paddingTop: Spacing.lg, paddingBottom: 110 }}
         ListEmptyComponent={
           <EmptyState
             icon="🗺️"
@@ -58,18 +109,21 @@ export function FeedScreen({ navigation }) {
 
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
-      <View style={styles.header}>
-        <View>
-          <Text style={styles.headerTitle}>Community</Text>
-          <Text style={styles.headerSub}>Itineraries from Ajala explorers</Text>
-        </View>
-        <Text style={{ fontSize: 24 }}>🌐</Text>
-      </View>
+      <ScreenHero
+        title="Journeys"
+        subtitle={`${feed.length} itinerar${feed.length !== 1 ? 'ies' : 'y'} from Ajala explorers`}
+        accent="#2D6A4F"
+        right={
+          <View style={styles.heroBadge}>
+            <Text style={{ fontSize: 22 }}>✈️</Text>
+          </View>
+        }
+      />
 
       <FlatList
         data={feed}
         keyExtractor={i => i.id}
-        contentContainerStyle={{ padding: Spacing.md, paddingBottom: 100 }}
+        contentContainerStyle={{ padding: Spacing.md, paddingTop: Spacing.lg, paddingBottom: 110 }}
         ListEmptyComponent={
           <EmptyState
             icon="✈️"
@@ -89,14 +143,12 @@ export function FeedScreen({ navigation }) {
 function ItineraryCard({ iti, navigation, showEdit, showCreator }) {
   const country = getCountryById(iti.countryId);
   const { currentUser, deleteItinerary } = useApp();
+  const isPublic = iti.visibility === 'public';
 
   const handleDelete = () => {
     Alert.alert('Delete Itinerary', 'Are you sure?', [
       { text: 'Cancel', style: 'cancel' },
-      {
-        text: 'Delete', style: 'destructive',
-        onPress: async () => { await deleteItinerary(iti.id); }
-      }
+      { text: 'Delete', style: 'destructive', onPress: async () => { await deleteItinerary(iti.id); } },
     ]);
   };
 
@@ -106,55 +158,80 @@ function ItineraryCard({ iti, navigation, showEdit, showCreator }) {
       onPress={() => navigation.navigate('ItineraryDetail', { itineraryId: iti.id })}
       activeOpacity={0.85}
     >
-      <View style={styles.itiCardHeader}>
-        <View style={styles.itiFlag}>
-          <Text style={{ fontSize: 26 }}>{country?.flag || '🌍'}</Text>
+      {/* Left accent bar */}
+      <View style={[styles.itiAccent, { backgroundColor: isPublic ? Colors.accent : Colors.textMuted }]} />
+
+      <View style={styles.itiCardInner}>
+        {/* Top row: title + flag */}
+        <View style={styles.itiCardHeader}>
+          <View style={{ flex: 1, paddingRight: Spacing.sm }}>
+            <Text style={styles.itiTitle} numberOfLines={2}>{iti.title}</Text>
+            {showCreator && (
+              <Text style={styles.itiCreator}>by {iti.creatorName}</Text>
+            )}
+            <Text style={styles.itiCountry}>{country?.flag} {country?.name || iti.countryId}</Text>
+          </View>
+          <View style={styles.itiFlag}>
+            <Text style={{ fontSize: 30 }}>{country?.flag || '🌍'}</Text>
+          </View>
         </View>
-        <View style={{ flex: 1 }}>
-          <Text style={styles.itiTitle}>{iti.title}</Text>
-          {showCreator && (
-            <Text style={styles.itiCreator}>by {iti.creatorName}</Text>
-          )}
-          <Text style={styles.itiCountry}>{country?.name || iti.countryId}</Text>
-        </View>
-        <View style={{ alignItems: 'flex-end', gap: 4 }}>
+
+        {/* Description */}
+        {iti.description ? (
+          <Text style={styles.itiDesc} numberOfLines={2}>{iti.description}</Text>
+        ) : null}
+
+        {/* Badges row */}
+        <View style={styles.itiBadgeRow}>
           <Badge
-            label={iti.visibility === 'public' ? '🌐 Public' : '🔒 Private'}
-            color={iti.visibility === 'public' ? Colors.accentFaint : Colors.surfaceAlt}
-            textColor={iti.visibility === 'public' ? Colors.accent : Colors.textSecondary}
+            label={isPublic ? '🌐 Public' : '🔒 Private'}
+            color={isPublic ? Colors.accentFaint : Colors.surfaceAlt}
+            textColor={isPublic ? Colors.accent : Colors.textSecondary}
           />
           {iti.creatorRole === 'tourguide' && (
             <Badge label="🧭 Guide" color={Colors.tourGuideLight} textColor={Colors.tourGuide} />
           )}
         </View>
-      </View>
 
-      {iti.description ? (
-        <Text style={styles.itiDesc} numberOfLines={2}>{iti.description}</Text>
-      ) : null}
-
-      <View style={styles.itiMeta}>
-        <Text style={styles.itiMetaText}>📍 {iti.placeIds.length} places</Text>
-        <Text style={styles.itiMetaText}>⭐ {iti.avgRating?.toFixed(1) || '—'}</Text>
-        <Text style={styles.itiMetaText}>💬 {iti.reviewCount || 0} reviews</Text>
-        <Text style={styles.itiMetaText}>📅 {new Date(iti.createdAt).toLocaleDateString('en-GB', { month: 'short', year: 'numeric' })}</Text>
-      </View>
-
-      {showEdit && currentUser?.id === iti.creatorId && (
-        <View style={styles.itiActions}>
-          <TouchableOpacity
-            style={styles.editBtn}
-            onPress={() => navigation.navigate('CreateItinerary', { editId: iti.id })}
-            activeOpacity={0.8}
-          >
-            <Text style={styles.editBtnText}>Edit</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={[styles.editBtn, { borderColor: Colors.error }]} onPress={handleDelete} activeOpacity={0.8}>
-            <Text style={[styles.editBtnText, { color: Colors.error }]}>Delete</Text>
-          </TouchableOpacity>
+        {/* Meta strip */}
+        <View style={styles.itiMeta}>
+          <MetaPill icon="📍" label={`${iti.placeIds.length} places`} />
+          <MetaPill icon="⭐" label={iti.avgRating?.toFixed(1) || '—'} />
+          <MetaPill icon="💬" label={`${iti.reviewCount || 0} reviews`} />
+          <Text style={styles.itiDate}>
+            {new Date(iti.createdAt).toLocaleDateString('en-GB', { month: 'short', year: 'numeric' })}
+          </Text>
         </View>
-      )}
+
+        {/* Edit actions */}
+        {showEdit && currentUser?.id === iti.creatorId && (
+          <View style={styles.itiActions}>
+            <TouchableOpacity
+              style={styles.editBtn}
+              onPress={() => navigation.navigate('CreateItinerary', { editId: iti.id })}
+              activeOpacity={0.8}
+            >
+              <Text style={styles.editBtnText}>Edit</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.editBtn, { borderColor: Colors.error }]}
+              onPress={handleDelete}
+              activeOpacity={0.8}
+            >
+              <Text style={[styles.editBtnText, { color: Colors.error }]}>Delete</Text>
+            </TouchableOpacity>
+          </View>
+        )}
+      </View>
     </TouchableOpacity>
+  );
+}
+
+function MetaPill({ icon, label }) {
+  return (
+    <View style={styles.metaPill}>
+      <Text style={styles.metaPillText}>{icon} {label}</Text>
+    </View>
   );
 }
 
@@ -408,9 +485,12 @@ export function ItineraryDetailScreen({ route, navigation }) {
     <SafeAreaView style={styles.safe} edges={['top']}>
       <ScrollView contentContainerStyle={{ paddingBottom: 120 }}>
         {/* Hero */}
-        <View style={[styles.itiHero, { backgroundColor: Colors.primary }]}>
+        <View style={styles.itiHero}>
+          <DarkHeroPattern color="#D4921C" opacity={0.07} />
           <TouchableOpacity style={styles.backBtn2} onPress={() => navigation.goBack()}>
-            <Text style={styles.backText2}>← Back</Text>
+            <View style={styles.backBtnInner2}>
+              <Text style={styles.backText2}>← Back</Text>
+            </View>
           </TouchableOpacity>
           <Text style={styles.itiHeroFlag}>{country?.flag || '🌍'}</Text>
           <Text style={styles.itiHeroTitle}>{iti.title}</Text>
@@ -418,14 +498,14 @@ export function ItineraryDetailScreen({ route, navigation }) {
           {avgRating > 0 && (
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 8 }}>
               <StarRating rating={avgRating} size={16} />
-              <Text style={{ color: Colors.textInverse, fontWeight: '600' }}>{avgRating.toFixed(1)}</Text>
-              <Text style={{ color: 'rgba(255,255,255,0.7)', fontSize: 13 }}>({reviews.length} reviews)</Text>
+              <Text style={{ color: '#FFFFFF', fontWeight: '600' }}>{avgRating.toFixed(1)}</Text>
+              <Text style={{ color: 'rgba(255,255,255,0.6)', fontSize: 13 }}>({reviews.length} reviews)</Text>
             </View>
           )}
-          <View style={{ flexDirection: 'row', gap: 8, marginTop: 12, flexWrap: 'wrap', justifyContent: 'center' }}>
-            <Badge label={iti.visibility === 'public' ? '🌐 Public' : '🔒 Private'} color="rgba(255,255,255,0.2)" textColor="white" />
-            <Badge label={`📍 ${iti.placeIds.length} places`} color="rgba(255,255,255,0.2)" textColor="white" />
-            {iti.creatorRole === 'tourguide' && <Badge label="🧭 Tour Guide" color="rgba(255,255,255,0.2)" textColor="white" />}
+          <View style={{ flexDirection: 'row', gap: 8, marginTop: 14, flexWrap: 'wrap', justifyContent: 'center' }}>
+            <Badge label={iti.visibility === 'public' ? '🌐 Public' : '🔒 Private'} color="rgba(255,255,255,0.18)" textColor="#fff" />
+            <Badge label={`📍 ${iti.placeIds.length} places`} color="rgba(255,255,255,0.18)" textColor="#fff" />
+            {iti.creatorRole === 'tourguide' && <Badge label="🧭 Tour Guide" color="rgba(255,255,255,0.18)" textColor="#fff" />}
           </View>
         </View>
 
@@ -557,31 +637,56 @@ function categoryIcon(cat) {
 
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: Colors.background },
-  header: {
-    flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
-    paddingHorizontal: Spacing.md, paddingTop: Spacing.sm, paddingBottom: Spacing.md,
+  heroBadge: {
+    width: 46, height: 46, borderRadius: 23,
+    backgroundColor: 'rgba(255,255,255,0.12)',
+    borderWidth: 1, borderColor: 'rgba(255,255,255,0.2)',
+    alignItems: 'center', justifyContent: 'center',
   },
-  headerTitle: { fontSize: Typography.sizes.xxxl, fontFamily: 'Georgia', fontWeight: 'bold', color: Colors.textPrimary },
-  headerSub: { fontSize: Typography.sizes.sm, color: Colors.textMuted, marginTop: 2 },
-  addBtn: { backgroundColor: Colors.primary, paddingHorizontal: 16, paddingVertical: 8, borderRadius: Radius.full },
-  addBtnText: { color: Colors.textInverse, fontWeight: '700', fontSize: Typography.sizes.sm },
+  addBtn: {
+    backgroundColor: Colors.gold, paddingHorizontal: 16, paddingVertical: 8,
+    borderRadius: Radius.full, ...Shadow.sm,
+  },
+  addBtnText: { color: '#FFFFFF', fontWeight: '700', fontSize: Typography.sizes.sm },
 
+  // Itinerary card — premium redesign
   itiCard: {
-    backgroundColor: Colors.surface, borderRadius: Radius.lg,
-    marginBottom: Spacing.md, ...Shadow.sm, overflow: 'hidden',
+    backgroundColor: Colors.surface,
+    borderRadius: Radius.lg,
+    marginBottom: Spacing.md,
+    flexDirection: 'row',
+    overflow: 'hidden',
+    ...Shadow.md,
   },
-  itiCardHeader: { flexDirection: 'row', alignItems: 'flex-start', padding: Spacing.md, gap: Spacing.md },
+  itiAccent: { width: 4, borderTopLeftRadius: Radius.lg, borderBottomLeftRadius: Radius.lg },
+  itiCardInner: { flex: 1, padding: Spacing.md },
+  itiCardHeader: { flexDirection: 'row', alignItems: 'flex-start', marginBottom: Spacing.xs },
   itiFlag: {
-    width: 50, height: 50, borderRadius: 25,
-    backgroundColor: Colors.primaryFaint, alignItems: 'center', justifyContent: 'center',
+    width: 58, height: 58, borderRadius: 29,
+    backgroundColor: Colors.primaryFaint,
+    borderWidth: 2, borderColor: Colors.borderLight,
+    alignItems: 'center', justifyContent: 'center',
+    ...Shadow.sm,
   },
-  itiTitle: { fontSize: Typography.sizes.lg, fontFamily: 'Georgia', fontWeight: 'bold', color: Colors.textPrimary },
-  itiCreator: { fontSize: Typography.sizes.sm, color: Colors.primary, fontWeight: '600' },
-  itiCountry: { fontSize: Typography.sizes.sm, color: Colors.textMuted, marginTop: 2 },
-  itiDesc: { fontSize: Typography.sizes.sm, color: Colors.textSecondary, paddingHorizontal: Spacing.md, paddingBottom: Spacing.sm },
-  itiMeta: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.sm, paddingHorizontal: Spacing.md, paddingBottom: Spacing.md, borderTopWidth: 1, borderTopColor: Colors.borderLight, paddingTop: Spacing.sm },
-  itiMetaText: { fontSize: Typography.sizes.xs, color: Colors.textMuted },
-  itiActions: { flexDirection: 'row', gap: Spacing.sm, paddingHorizontal: Spacing.md, paddingBottom: Spacing.md },
+  itiTitle:   { fontSize: 16, fontFamily: 'Georgia', fontWeight: '700', color: Colors.textPrimary, lineHeight: 22 },
+  itiCreator: { fontSize: 12, color: Colors.primary, fontWeight: '600', marginTop: 3 },
+  itiCountry: { fontSize: 12, color: Colors.textMuted, marginTop: 2 },
+  itiDesc:    { fontSize: 13, color: Colors.textSecondary, lineHeight: 19, marginBottom: Spacing.sm },
+  itiBadgeRow:{ flexDirection: 'row', gap: 6, marginBottom: Spacing.sm, flexWrap: 'wrap' },
+  itiMeta: {
+    flexDirection: 'row', flexWrap: 'wrap', gap: 6,
+    paddingTop: Spacing.sm,
+    borderTopWidth: 1, borderTopColor: Colors.borderLight,
+    alignItems: 'center',
+  },
+  metaPill: {
+    backgroundColor: Colors.background,
+    borderRadius: Radius.full,
+    paddingHorizontal: 8, paddingVertical: 3,
+  },
+  metaPillText: { fontSize: 11, color: Colors.textSecondary, fontWeight: '500' },
+  itiDate: { fontSize: 11, color: Colors.textMuted, marginLeft: 'auto' },
+  itiActions: { flexDirection: 'row', gap: Spacing.sm, marginTop: Spacing.sm },
   editBtn: { borderWidth: 1.5, borderColor: Colors.primary, paddingHorizontal: 14, paddingVertical: 6, borderRadius: Radius.full },
   editBtnText: { color: Colors.primary, fontSize: Typography.sizes.sm, fontWeight: '600' },
 
@@ -657,13 +762,25 @@ const styles = StyleSheet.create({
   },
   prevBtnText: { color: Colors.textMuted, fontSize: Typography.sizes.md },
 
-  // Itinerary Detail
-  itiHero: { padding: Spacing.xl, paddingTop: Spacing.md, alignItems: 'center' },
+  // Itinerary Detail hero
+  itiHero: {
+    backgroundColor: Colors.darkWarm,
+    padding: Spacing.xl, paddingTop: Spacing.md,
+    alignItems: 'center', overflow: 'hidden',
+    borderBottomLeftRadius: 32, borderBottomRightRadius: 32,
+    ...Shadow.md,
+  },
   backBtn2: { alignSelf: 'flex-start', marginBottom: Spacing.md },
-  backText2: { color: Colors.textInverse, fontSize: Typography.sizes.md, opacity: 0.9 },
-  itiHeroFlag: { fontSize: 52, marginBottom: Spacing.sm },
-  itiHeroTitle: { fontSize: Typography.sizes.xxl, fontFamily: 'Georgia', color: Colors.textInverse, fontWeight: 'bold', textAlign: 'center' },
-  itiHeroCountry: { fontSize: Typography.sizes.md, color: 'rgba(255,255,255,0.8)', marginTop: 4 },
+  backBtnInner2: {
+    paddingHorizontal: 14, paddingVertical: 6,
+    backgroundColor: 'rgba(255,255,255,0.12)',
+    borderRadius: Radius.full,
+    borderWidth: 1, borderColor: 'rgba(255,255,255,0.18)',
+  },
+  backText2: { color: '#FFFFFF', fontSize: 13, fontWeight: '500' },
+  itiHeroFlag:    { fontSize: 60, marginBottom: Spacing.sm },
+  itiHeroTitle:   { fontSize: Typography.sizes.xxl, fontFamily: 'Georgia', color: '#FFFFFF', fontWeight: 'bold', textAlign: 'center' },
+  itiHeroCountry: { fontSize: Typography.sizes.md, color: 'rgba(255,255,255,0.65)', marginTop: 4 },
 
   creatorCard: {
     flexDirection: 'row', alignItems: 'center',

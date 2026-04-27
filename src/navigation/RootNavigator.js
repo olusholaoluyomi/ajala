@@ -102,13 +102,30 @@ function ProfileNav() {
   );
 }
 
-// Safe tab icon — never calls useApp(), reads from context directly via React.useContext
-function ProfileIcon({ focused }) {
+const TAB_ICONS = {
+  Explore:  { on: '🌍', off: '🗺️', label: 'Explore'  },
+  Journeys: { on: '✈️',  off: '🛫', label: 'Journeys' },
+  Trips:    { on: '🧭', off: '🧭', label: 'Trips'    },
+  Profile:  { on: '👤', off: '🧑', label: 'Profile'  },
+};
+
+// Tab icon with circular active highlight
+function TabIcon({ name, focused }) {
+  const icons = TAB_ICONS[name];
+  return (
+    <View style={[st.iconWrap, focused && st.iconWrapActive]}>
+      <Text style={{ fontSize: 21 }}>{focused ? icons?.on : icons?.off}</Text>
+    </View>
+  );
+}
+
+// Profile icon with unread badge
+function ProfileTabIcon({ focused }) {
   const ctx = React.useContext(AppContext);
   const unreadCount = ctx?.unreadCount || 0;
   return (
-    <View>
-      <Text style={{ fontSize: 22 }}>{focused ? '👤' : '🧑'}</Text>
+    <View style={[st.iconWrap, focused && st.iconWrapActive]}>
+      <Text style={{ fontSize: 21 }}>{focused ? '👤' : '🧑'}</Text>
       {unreadCount > 0 && (
         <View style={st.badge}>
           <Text style={st.badgeText}>{unreadCount > 9 ? '9+' : unreadCount}</Text>
@@ -117,12 +134,6 @@ function ProfileIcon({ focused }) {
     </View>
   );
 }
-
-const TAB_ICONS = {
-  Explore:  { on: '🌍', off: '🗺️' },
-  Journeys: { on: '✈️',  off: '🛫' },
-  Trips:    { on: '🧭', off: '🧭' },
-};
 
 function Tabs() {
   return (
@@ -135,12 +146,12 @@ function Tabs() {
         tabBarLabelStyle: st.label,
         tabBarIcon: ({ focused }) =>
           route.name === 'Profile'
-            ? <ProfileIcon focused={focused} />
-            : <Text style={{ fontSize: 22 }}>{focused ? TAB_ICONS[route.name]?.on : TAB_ICONS[route.name]?.off}</Text>,
+            ? <ProfileTabIcon focused={focused} />
+            : <TabIcon name={route.name} focused={focused} />,
       })}
     >
       <Tab.Screen name="Explore"   component={ExploreNav} />
-      <Tab.Screen name="Journeys" component={CommunityNav} />
+      <Tab.Screen name="Journeys"  component={CommunityNav} />
       <Tab.Screen name="Trips"     component={TripsNav} />
       <Tab.Screen name="Profile"   component={ProfileNav} />
     </Tab.Navigator>
@@ -183,8 +194,33 @@ export function RootNavigator() {
 }
 
 const st = StyleSheet.create({
-  bar:      { backgroundColor: Colors.surface, borderTopColor: Colors.borderLight, borderTopWidth: 1, paddingTop: 8, paddingBottom: 8, height: 70 },
-  label:    { fontSize: 11, fontWeight: '600', marginTop: 2 },
-  badge:    { position: 'absolute', top: -2, right: -6, backgroundColor: '#E63946', borderRadius: 8, minWidth: 16, height: 16, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 3 },
-  badgeText:{ color: '#fff', fontSize: 9, fontWeight: 'bold' },
+  bar: {
+    backgroundColor: Colors.surface,
+    borderTopWidth: 0,
+    height: 74,
+    paddingBottom: 10,
+    paddingTop: 6,
+    // Floating shadow instead of border
+    shadowColor: '#1A0A00',
+    shadowOffset: { width: 0, height: -4 },
+    shadowOpacity: 0.08,
+    shadowRadius: 16,
+    elevation: 16,
+  },
+  label: { fontSize: 11, fontWeight: '600', marginTop: 2 },
+  iconWrap: {
+    width: 44, height: 36, borderRadius: 18,
+    alignItems: 'center', justifyContent: 'center',
+  },
+  iconWrapActive: {
+    backgroundColor: Colors.primaryFaint,
+  },
+  badge: {
+    position: 'absolute', top: -2, right: -4,
+    backgroundColor: '#E63946', borderRadius: 8,
+    minWidth: 16, height: 16,
+    alignItems: 'center', justifyContent: 'center',
+    paddingHorizontal: 3,
+  },
+  badgeText: { color: '#fff', fontSize: 9, fontWeight: 'bold' },
 });
