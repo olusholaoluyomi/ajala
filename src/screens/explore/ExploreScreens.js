@@ -12,7 +12,7 @@ import { SubscriptionBanner, TrialPill } from '../payment/SubscriptionScreens';
 import { getTrialStatus } from '../../utils/paystack';
 
 // ── DARK DIAGONAL TEXTURE (shared with Auth/Onboarding) ──────────────────────
-function DarkHeroPattern({ color = '#C1440E', opacity = 0.055 }) {
+function DarkHeroPattern({ color = '#C1440E', opacity = 0.04 }) {
   return (
     <View style={StyleSheet.absoluteFillObject} pointerEvents="none">
       {Array.from({ length: 16 }, (_, i) => (
@@ -212,7 +212,7 @@ export function CountryDetailScreen({ route, navigation }) {
 
         {/* ── HERO ── */}
         <View style={s.countryHero}>
-          <DarkHeroPattern color="#D4921C" opacity={0.07} />
+          <DarkHeroPattern color="#D4921C" opacity={0.05} />
           <TouchableOpacity style={s.backBtn} onPress={() => navigation.goBack()}>
             <View style={s.backBtnInner}>
               <Text style={s.backText}>← Back</Text>

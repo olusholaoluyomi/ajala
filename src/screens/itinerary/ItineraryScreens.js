@@ -10,7 +10,7 @@ import { Button, Card, StarRating, EmptyState, Avatar, RoleBadge, Badge, Divider
 import { Colors, Typography, Spacing, Radius, Shadow } from '../../utils/theme';
 
 // ── SHARED DARK HERO HEADER ───────────────────────────────────────────────────
-function DarkHeroPattern({ color = '#C1440E', opacity = 0.055 }) {
+function DarkHeroPattern({ color = '#C1440E', opacity = 0.04 }) {
   return (
     <View style={StyleSheet.absoluteFillObject} pointerEvents="none">
       {Array.from({ length: 16 }, (_, i) => (
@@ -28,10 +28,10 @@ function DarkHeroPattern({ color = '#C1440E', opacity = 0.055 }) {
   );
 }
 
-function ScreenHero({ title, subtitle, right, accent = '#C1440E' }) {
+function ScreenHeader({ title, subtitle, right, accent = Colors.primary }) {
   return (
-    <View style={heroS.hero}>
-      <DarkHeroPattern color={accent} />
+    <View style={heroS.header}>
+      <View style={[heroS.accentBar, { backgroundColor: accent }]} />
       <View style={heroS.row}>
         <View style={{ flex: 1 }}>
           <Text style={heroS.title}>{title}</Text>
@@ -44,19 +44,18 @@ function ScreenHero({ title, subtitle, right, accent = '#C1440E' }) {
 }
 
 const heroS = StyleSheet.create({
-  hero: {
-    backgroundColor: Colors.darkWarm,
+  header: {
+    backgroundColor: Colors.surface,
     paddingHorizontal: Spacing.lg,
-    paddingTop: Spacing.sm,
-    paddingBottom: Spacing.lg,
-    overflow: 'hidden',
-    borderBottomLeftRadius: 28,
-    borderBottomRightRadius: 28,
-    ...Shadow.md,
+    paddingTop: Spacing.md,
+    paddingBottom: Spacing.md,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.borderLight,
   },
-  row: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between' },
-  title: { fontSize: 32, fontFamily: 'Georgia', fontWeight: '800', color: '#FFFFFF', marginBottom: 4 },
-  sub:   { fontSize: 13, color: 'rgba(255,255,255,0.5)', letterSpacing: 0.3 },
+  accentBar: { position: 'absolute', top: 0, left: 0, right: 0, height: 3 },
+  row:   { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  title: { fontSize: 28, fontFamily: 'Georgia', fontWeight: '800', color: Colors.textPrimary, marginTop: Spacing.xs },
+  sub:   { fontSize: 12, color: Colors.textMuted, marginTop: 2 },
 });
 
 // My Itineraries List
@@ -66,10 +65,10 @@ export function MyItinerariesScreen({ navigation }) {
 
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
-      <ScreenHero
+      <ScreenHeader
         title="My Itineraries"
         subtitle={`${myItineraries.length} trip${myItineraries.length !== 1 ? 's' : ''} planned`}
-        accent="#D4921C"
+        accent={Colors.gold}
         right={
           <TouchableOpacity
             style={styles.addBtn}
@@ -109,15 +108,11 @@ export function FeedScreen({ navigation }) {
 
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
-      <ScreenHero
+      <ScreenHeader
         title="Journeys"
         subtitle={`${feed.length} itinerar${feed.length !== 1 ? 'ies' : 'y'} from Ajala explorers`}
-        accent="#2D6A4F"
-        right={
-          <View style={styles.heroBadge}>
-            <Text style={{ fontSize: 22 }}>✈️</Text>
-          </View>
-        }
+        accent={Colors.accent}
+        right={<Text style={{ fontSize: 24, marginTop: Spacing.xs }}>✈️</Text>}
       />
 
       <FlatList
@@ -486,7 +481,7 @@ export function ItineraryDetailScreen({ route, navigation }) {
       <ScrollView contentContainerStyle={{ paddingBottom: 120 }}>
         {/* Hero */}
         <View style={styles.itiHero}>
-          <DarkHeroPattern color="#D4921C" opacity={0.07} />
+          <DarkHeroPattern color="#D4921C" opacity={0.05} />
           <TouchableOpacity style={styles.backBtn2} onPress={() => navigation.goBack()}>
             <View style={styles.backBtnInner2}>
               <Text style={styles.backText2}>← Back</Text>

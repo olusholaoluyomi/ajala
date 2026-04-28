@@ -13,6 +13,25 @@ import { Colors, Typography, Spacing, Radius, Shadow } from '../../utils/theme';
 import { pickPhotos } from '../../utils/photoUtils';
 import { getCountryById } from '../../data/worldData';
 
+// ── DECORATIVE BACKGROUND ─────────────────────────────────────────────────────
+function DarkHeroPattern({ color = '#C1440E', opacity = 0.04 }) {
+  return (
+    <View style={StyleSheet.absoluteFillObject} pointerEvents="none">
+      {Array.from({ length: 16 }, (_, i) => (
+        <View
+          key={i}
+          style={{
+            position: 'absolute', top: -80, bottom: -80,
+            left: i * 38 - 10, width: 18,
+            backgroundColor: color, opacity,
+            transform: [{ rotate: '22deg' }],
+          }}
+        />
+      ))}
+    </View>
+  );
+}
+
 // ── MY PROFILE ────────────────────────────────────────────────────────────────
 export function ProfileScreen({ navigation }) {
   const { currentUser, logout, getUserItineraries, itineraries, reviews, TOUR_GUIDE_REQUIREMENTS } = useApp();
@@ -46,7 +65,10 @@ export function ProfileScreen({ navigation }) {
     <SafeAreaView style={styles.safe} edges={['top']}>
       <ScrollView contentContainerStyle={{ paddingBottom: 120 }}>
         <View style={styles.profileHero}>
-          <Avatar name={currentUser.name} size={80} />
+          <View style={styles.profileHeroAccent} />
+          <View style={styles.avatarRing}>
+            <Avatar name={currentUser.name} size={80} />
+          </View>
           <Text style={styles.profileName}>{currentUser.name}</Text>
           {currentUser.username
             ? <Text style={styles.profileUsername}>@{currentUser.username}</Text>
@@ -54,10 +76,19 @@ export function ProfileScreen({ navigation }) {
                 <Text style={styles.setUsername}>Set a username →</Text>
               </TouchableOpacity>
           }
-          <Text style={styles.profileEmail}>{currentUser.email}</Text>
-          {currentUser.bio ? <Text style={styles.profileBio}>{currentUser.bio}</Text> : null}
+          {currentUser.bio
+            ? <Text style={styles.profileBio}>{currentUser.bio}</Text>
+            : <Text style={styles.profileEmail}>{currentUser.email}</Text>
+          }
           <View style={{ marginTop: Spacing.sm }}>
             <RoleBadge role={currentUser.role} />
+          </View>
+          <View style={styles.statsStrip}>
+            <StatPill label="Itineraries" value={myItineraries.length} />
+            <View style={styles.statPillDivider} />
+            <StatPill label="Reviews" value={myReviewsReceived.length} />
+            <View style={styles.statPillDivider} />
+            <StatPill label="Avg Rating" value={avgRating > 0 ? avgRating.toFixed(1) : '—'} />
           </View>
         </View>
 
@@ -67,46 +98,48 @@ export function ProfileScreen({ navigation }) {
             <SubscriptionBanner onSubscribe={() => navigation.navigate('Paywall')} />
           )}
 
-          <View style={styles.statsRow}>
-            <StatBox label="Itineraries" value={myItineraries.length} icon="🗺️" />
-            <StatBox label="Reviews" value={myReviewsReceived.length} icon="⭐" />
-            <StatBox label="Avg Rating" value={avgRating > 0 ? avgRating.toFixed(1) : '—'} icon="📊" />
-          </View>
-
           {!isTourGuide && (
             <View style={styles.progressCard}>
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: Spacing.md }}>
-                <Text style={{ fontSize: 24 }}>🧭</Text>
-                <View>
-                  <Text style={styles.progressTitle}>Tour Guide Journey</Text>
-                  <Text style={styles.progressSub}>Meet these targets to earn Tour Guide status</Text>
+              <View style={styles.progressAccent} />
+              <View style={styles.progressCardInner}>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: Spacing.md }}>
+                  <Text style={{ fontSize: 22 }}>🧭</Text>
+                  <View>
+                    <Text style={styles.progressTitle}>Tour Guide Journey</Text>
+                    <Text style={styles.progressSub}>Meet these targets to earn Tour Guide status</Text>
+                  </View>
                 </View>
+                <ProgressItem label="Public Itineraries" current={publicItineraries.length} target={TOUR_GUIDE_REQUIREMENTS.minItineraries} progress={itiProgress} />
+                <ProgressItem label="Reviews Received" current={myReviewsReceived.length} target={TOUR_GUIDE_REQUIREMENTS.minReviews} progress={revProgress} />
+                <ProgressItem label="Average Rating" current={avgRating.toFixed(1)} target={TOUR_GUIDE_REQUIREMENTS.minAvgRating} progress={ratingProgress} isRating />
+                <Text style={styles.progressHint}>🌟 Once achieved, your DM will open for travel partnership opportunities!</Text>
               </View>
-              <ProgressItem label="Public Itineraries" current={publicItineraries.length} target={TOUR_GUIDE_REQUIREMENTS.minItineraries} progress={itiProgress} />
-              <ProgressItem label="Reviews Received" current={myReviewsReceived.length} target={TOUR_GUIDE_REQUIREMENTS.minReviews} progress={revProgress} />
-              <ProgressItem label="Average Rating" current={avgRating.toFixed(1)} target={TOUR_GUIDE_REQUIREMENTS.minAvgRating} progress={ratingProgress} isRating />
-              <Text style={styles.progressHint}>🌟 Once achieved, your DM will open for travel partnership opportunities!</Text>
             </View>
           )}
 
           {isTourGuide && (
             <View style={styles.guideCard}>
-              <Text style={{ fontSize: 36 }}>🧭</Text>
+              <Text style={{ fontSize: 30 }}>🧭</Text>
               <Text style={styles.guideTitle}>You're a Tour Guide!</Text>
               <Text style={styles.guideSub}>Keep sharing great itineraries to grow your audience.</Text>
             </View>
           )}
 
           <Text style={styles.sectionTitle}>Quick Actions</Text>
-          <View style={{ gap: Spacing.sm }}>
-            <ActionRow icon="🗺️" label="My Itineraries"   onPress={() => navigation.navigate('MyItineraries')} />
-            <ActionRow icon="🎒" label="My Bookings"       onPress={() => navigation.navigate('MyBookings')} />
-            {currentUser?.role === 'tourguide' && <ActionRow icon="💰" label="Guide Earnings"  onPress={() => navigation.navigate('GuideEarnings')} />}
-            {currentUser?.role === 'tourguide' && <ActionRow icon="🏦" label="Bank Account"    onPress={() => navigation.navigate('BankAccount')} />}
-            <ActionRow icon="💬" label="Messages"          onPress={() => navigation.navigate('MessagesInbox')} />
-            <ActionRow icon="🔔" label="Notifications"     onPress={() => navigation.navigate('Notifications')} />
-            <ActionRow icon="💳" label="Subscription"      onPress={() => navigation.navigate('ManageSubscription')} />
-            <ActionRow icon="✏️" label="Edit Profile"      onPress={() => navigation.navigate('EditProfile')} />
+          <View style={styles.actionsCard}>
+            <ActionRow icon="🗺️" label="My Itineraries" onPress={() => navigation.navigate('MyItineraries')} />
+            <ActionDivider />
+            <ActionRow icon="🎒" label="My Bookings" onPress={() => navigation.navigate('MyBookings')} />
+            {currentUser?.role === 'tourguide' && <><ActionDivider /><ActionRow icon="💰" label="Guide Earnings" onPress={() => navigation.navigate('GuideEarnings')} /></>}
+            {currentUser?.role === 'tourguide' && <><ActionDivider /><ActionRow icon="🏦" label="Bank Account" onPress={() => navigation.navigate('BankAccount')} /></>}
+            <ActionDivider />
+            <ActionRow icon="💬" label="Messages" onPress={() => navigation.navigate('MessagesInbox')} />
+            <ActionDivider />
+            <ActionRow icon="🔔" label="Notifications" onPress={() => navigation.navigate('Notifications')} />
+            <ActionDivider />
+            <ActionRow icon="💳" label="Subscription" onPress={() => navigation.navigate('ManageSubscription')} />
+            <ActionDivider />
+            <ActionRow icon="✏️" label="Edit Profile" onPress={() => navigation.navigate('EditProfile')} />
           </View>
 
           <Divider style={{ marginTop: Spacing.xl }} />
@@ -117,14 +150,17 @@ export function ProfileScreen({ navigation }) {
   );
 }
 
-function StatBox({ label, value, icon }) {
+function StatPill({ label, value }) {
   return (
-    <View style={styles.statBox}>
-      <Text style={{ fontSize: 24 }}>{icon}</Text>
-      <Text style={styles.statValue}>{value}</Text>
-      <Text style={styles.statLabel}>{label}</Text>
+    <View style={{ alignItems: 'center', flex: 1 }}>
+      <Text style={styles.statPillValue}>{value}</Text>
+      <Text style={styles.statPillLabel}>{label}</Text>
     </View>
   );
+}
+
+function ActionDivider() {
+  return <View style={{ height: 1, backgroundColor: Colors.borderLight, marginLeft: 50 }} />;
 }
 
 function ProgressItem({ label, current, target, progress, isRating }) {
@@ -146,10 +182,12 @@ function ProgressItem({ label, current, target, progress, isRating }) {
 
 function ActionRow({ icon, label, onPress }) {
   return (
-    <TouchableOpacity style={styles.actionRow} onPress={onPress} activeOpacity={0.8}>
-      <Text style={{ fontSize: 22 }}>{icon}</Text>
+    <TouchableOpacity style={styles.actionRow} onPress={onPress} activeOpacity={0.7}>
+      <View style={styles.actionIconWrap}>
+        <Text style={{ fontSize: 18 }}>{icon}</Text>
+      </View>
       <Text style={styles.actionLabel}>{label}</Text>
-      <Text style={{ color: Colors.textMuted, fontSize: 18 }}>→</Text>
+      <Text style={{ color: Colors.borderLight, fontSize: 16 }}>›</Text>
     </TouchableOpacity>
   );
 }
@@ -169,18 +207,22 @@ export function UserProfileScreen({ route, navigation }) {
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
       <ScrollView contentContainerStyle={{ paddingBottom: 100 }}>
-        <TouchableOpacity style={styles.backRow} onPress={() => navigation.goBack()}>
-          <Text style={styles.backText}>← Back</Text>
-        </TouchableOpacity>
-
         <View style={styles.profileHero}>
-          <Avatar name={user.name} size={72} />
+          <View style={styles.profileHeroAccent} />
+          <TouchableOpacity style={styles.heroBackRow} onPress={() => navigation.goBack()}>
+            <Text style={styles.heroBackText}>← Back</Text>
+          </TouchableOpacity>
+          <View style={styles.avatarRing}>
+            <Avatar name={user.name} size={72} />
+          </View>
           <Text style={styles.profileName}>{user.name}</Text>
           {user.username && <Text style={styles.profileUsername}>@{user.username}</Text>}
           {user.bio ? <Text style={styles.profileBio}>{user.bio}</Text> : null}
-          <RoleBadge role={user.role} />
+          <View style={{ marginTop: Spacing.sm }}>
+            <RoleBadge role={user.role} />
+          </View>
 
-          <View style={{ flexDirection: 'row', gap: 10, marginTop: Spacing.md }}>
+          <View style={{ flexDirection: 'row', gap: 10, marginTop: Spacing.md, width: '100%' }}>
             {!isSelf && currentUser && (
               <Button
                 title={isFollowing(userId) ? '✓ Following' : '+ Follow'}
@@ -198,15 +240,11 @@ export function UserProfileScreen({ route, navigation }) {
               />
             )}
           </View>
-          <View style={{ flexDirection: 'row', gap: Spacing.xl, marginTop: Spacing.md }}>
-            <View style={{ alignItems: 'center' }}>
-              <Text style={{ fontSize: Typography.sizes.xl, fontWeight: 'bold', color: Colors.textPrimary }}>{(user.followers || []).length}</Text>
-              <Text style={{ fontSize: Typography.sizes.xs, color: Colors.textMuted }}>Followers</Text>
-            </View>
-            <View style={{ alignItems: 'center' }}>
-              <Text style={{ fontSize: Typography.sizes.xl, fontWeight: 'bold', color: Colors.textPrimary }}>{(user.following || []).length}</Text>
-              <Text style={{ fontSize: Typography.sizes.xs, color: Colors.textMuted }}>Following</Text>
-            </View>
+
+          <View style={styles.statsStrip}>
+            <StatPill label="Followers" value={(user.followers || []).length} />
+            <View style={styles.statPillDivider} />
+            <StatPill label="Following" value={(user.following || []).length} />
           </View>
         </View>
 
@@ -778,37 +816,62 @@ const styles = StyleSheet.create({
   },
 
   profileHero: {
-    backgroundColor: Colors.surface, padding: Spacing.xl,
-    alignItems: 'center', borderBottomWidth: 1, borderBottomColor: Colors.borderLight,
+    backgroundColor: Colors.surface,
+    paddingHorizontal: Spacing.xl, paddingTop: Spacing.md, paddingBottom: Spacing.lg,
+    alignItems: 'center',
+    borderBottomWidth: 1, borderBottomColor: Colors.borderLight,
   },
-  profileName:     { fontSize: Typography.sizes.xxl, fontFamily: 'Georgia', fontWeight: 'bold', color: Colors.textPrimary, marginTop: Spacing.md },
-  profileUsername: { fontSize: Typography.sizes.md, color: Colors.primary, fontWeight: '600', marginTop: 4 },
-  setUsername:     { fontSize: Typography.sizes.sm, color: Colors.accent, marginTop: 4 },
-  profileEmail:    { fontSize: Typography.sizes.sm, color: Colors.textMuted, marginTop: 4 },
-  profileBio:      { fontSize: Typography.sizes.md, color: Colors.textSecondary, textAlign: 'center', marginTop: Spacing.sm, lineHeight: 22 },
+  profileHeroAccent: {
+    position: 'absolute', top: 0, left: 0, right: 0, height: 3,
+    backgroundColor: Colors.primary,
+  },
+  avatarRing: {
+    width: 92, height: 92, borderRadius: 46,
+    borderWidth: 2.5, borderColor: Colors.gold,
+    alignItems: 'center', justifyContent: 'center',
+    marginBottom: Spacing.sm, marginTop: Spacing.md,
+  },
+  profileName:     { fontSize: Typography.sizes.xxl, fontFamily: 'Georgia', fontWeight: 'bold', color: Colors.textPrimary, marginTop: 4 },
+  profileUsername: { fontSize: Typography.sizes.sm, color: Colors.primary, fontWeight: '600', marginTop: 3 },
+  setUsername:     { fontSize: Typography.sizes.sm, color: Colors.accent, marginTop: 3 },
+  profileEmail:    { fontSize: Typography.sizes.sm, color: Colors.textMuted, marginTop: 3 },
+  profileBio:      { fontSize: Typography.sizes.sm, color: Colors.textSecondary, textAlign: 'center', marginTop: 6, lineHeight: 20, paddingHorizontal: Spacing.md },
 
-  statsRow:  { flexDirection: 'row', gap: Spacing.sm, marginBottom: Spacing.lg },
-  statBox:   { flex: 1, backgroundColor: Colors.surface, borderRadius: Radius.lg, padding: Spacing.md, alignItems: 'center', ...Shadow.sm, gap: 4 },
-  statValue: { fontSize: Typography.sizes.xl, fontFamily: 'Georgia', fontWeight: 'bold', color: Colors.textPrimary },
-  statLabel: { fontSize: Typography.sizes.xs, color: Colors.textMuted, textAlign: 'center' },
+  statsStrip: {
+    flexDirection: 'row', alignItems: 'center',
+    backgroundColor: Colors.background,
+    borderRadius: Radius.lg, borderWidth: 1, borderColor: Colors.borderLight,
+    paddingVertical: 10, paddingHorizontal: Spacing.sm,
+    marginTop: Spacing.md, width: '100%',
+  },
+  statPillDivider: { width: 1, height: 24, backgroundColor: Colors.borderLight },
+  statPillValue:   { fontSize: 18, fontFamily: 'Georgia', fontWeight: '700', color: Colors.textPrimary, textAlign: 'center' },
+  statPillLabel:   { fontSize: 10, color: Colors.textMuted, textAlign: 'center', marginTop: 2, letterSpacing: 0.3 },
 
-  progressCard:  { backgroundColor: Colors.surface, borderRadius: Radius.lg, padding: Spacing.md, marginBottom: Spacing.lg, ...Shadow.sm },
-  progressTitle: { fontSize: Typography.sizes.md, fontWeight: 'bold', color: Colors.textPrimary },
-  progressSub:   { fontSize: Typography.sizes.sm, color: Colors.textMuted },
-  progressItem:  { marginBottom: Spacing.md },
-  progressLabel: { fontSize: Typography.sizes.sm, color: Colors.textSecondary, fontWeight: '500' },
-  progressValue: { fontSize: Typography.sizes.sm, fontWeight: 'bold', color: Colors.primary },
-  progressBar:   { height: 8, backgroundColor: Colors.borderLight, borderRadius: 4, overflow: 'hidden' },
-  progressFill:  { height: 8, borderRadius: 4 },
-  progressHint:  { fontSize: Typography.sizes.sm, color: Colors.textMuted, marginTop: Spacing.sm, fontStyle: 'italic', lineHeight: 20 },
+  progressCard:      { flexDirection: 'row', backgroundColor: Colors.surface, borderRadius: Radius.lg, overflow: 'hidden', marginBottom: Spacing.lg, borderWidth: 1, borderColor: Colors.borderLight },
+  progressAccent:    { width: 4, backgroundColor: Colors.primary, alignSelf: 'stretch' },
+  progressCardInner: { flex: 1, padding: Spacing.md },
+  progressTitle:     { fontSize: Typography.sizes.md, fontWeight: '700', color: Colors.textPrimary },
+  progressSub:       { fontSize: Typography.sizes.xs, color: Colors.textMuted, marginTop: 1 },
+  progressItem:      { marginBottom: Spacing.md },
+  progressLabel:     { fontSize: Typography.sizes.sm, color: Colors.textSecondary, fontWeight: '500' },
+  progressValue:     { fontSize: Typography.sizes.sm, fontWeight: '700', color: Colors.primary },
+  progressBar:       { height: 6, backgroundColor: Colors.borderLight, borderRadius: 3, overflow: 'hidden' },
+  progressFill:      { height: 6, borderRadius: 3 },
+  progressHint:      { fontSize: Typography.sizes.xs, color: Colors.textMuted, marginTop: Spacing.sm, lineHeight: 18 },
 
-  guideCard:  { backgroundColor: Colors.tourGuideLight, borderRadius: Radius.lg, padding: Spacing.lg, alignItems: 'center', marginBottom: Spacing.lg, gap: 8 },
-  guideTitle: { fontSize: Typography.sizes.xl, fontFamily: 'Georgia', fontWeight: 'bold', color: Colors.tourGuide },
-  guideSub:   { fontSize: Typography.sizes.md, color: Colors.textSecondary, textAlign: 'center', lineHeight: 22 },
+  guideCard:  { backgroundColor: Colors.accentFaint, borderRadius: Radius.lg, padding: Spacing.lg, alignItems: 'center', marginBottom: Spacing.lg, gap: 6, borderWidth: 1, borderColor: `${Colors.accent}30` },
+  guideTitle: { fontSize: Typography.sizes.lg, fontFamily: 'Georgia', fontWeight: '700', color: Colors.accent },
+  guideSub:   { fontSize: Typography.sizes.sm, color: Colors.textSecondary, textAlign: 'center', lineHeight: 20 },
 
-  sectionTitle: { fontSize: Typography.sizes.lg, fontFamily: 'Georgia', fontWeight: 'bold', color: Colors.textPrimary, marginBottom: Spacing.md },
-  actionRow:    { flexDirection: 'row', alignItems: 'center', backgroundColor: Colors.surface, borderRadius: Radius.md, padding: Spacing.md, gap: Spacing.md, ...Shadow.sm },
-  actionLabel:  { flex: 1, fontSize: Typography.sizes.md, color: Colors.textPrimary, fontWeight: '500' },
+  sectionTitle:  { fontSize: Typography.sizes.md, fontWeight: '700', color: Colors.textSecondary, marginBottom: Spacing.sm, textTransform: 'uppercase', letterSpacing: 0.5 },
+  actionsCard:   { backgroundColor: Colors.surface, borderRadius: Radius.lg, overflow: 'hidden', borderWidth: 1, borderColor: Colors.borderLight, marginBottom: Spacing.lg },
+  actionRow:     { flexDirection: 'row', alignItems: 'center', padding: Spacing.md, gap: 12 },
+  actionIconWrap:{ width: 32, height: 32, borderRadius: 8, backgroundColor: Colors.background, alignItems: 'center', justifyContent: 'center' },
+  actionLabel:   { flex: 1, fontSize: Typography.sizes.md, color: Colors.textPrimary },
+
+  heroBackRow: { alignSelf: 'flex-start', marginBottom: Spacing.sm },
+  heroBackText: { color: Colors.primary, fontSize: Typography.sizes.sm, fontWeight: '600' },
 
   backRow:  { padding: Spacing.md },
   backText: { color: Colors.primary, fontSize: Typography.sizes.md },
