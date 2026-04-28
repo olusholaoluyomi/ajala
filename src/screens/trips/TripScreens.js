@@ -66,11 +66,14 @@ export function TripsMarketplaceScreen({ navigation }) {
     <>
       {/* Header */}
       <View style={s.header}>
-        <View>
-          <Text style={s.headerTitle}>Trips</Text>
-          <Text style={s.headerSub}>Guided adventures & solo journeys</Text>
+        <View style={s.headerAccent} />
+        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+          <View>
+            <Text style={s.headerTitle}>Trips</Text>
+            <Text style={s.headerSub}>Guided adventures & solo journeys</Text>
+          </View>
+          <Text style={{ fontSize: 26, marginTop: Spacing.xs }}>🧭</Text>
         </View>
-        <Text style={{ fontSize: 28 }}>🧭</Text>
       </View>
 
       {/* Filter Cards */}
@@ -596,9 +599,10 @@ export function CreateTripScreen({ route, navigation }) {
 
 const s = StyleSheet.create({
   safe: { flex: 1, backgroundColor: Colors.background },
-  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', padding: Spacing.md, paddingBottom: Spacing.sm },
-  headerTitle: { fontSize: Typography.sizes.xxxl, fontFamily: 'Georgia', fontWeight: 'bold', color: Colors.textPrimary },
-  headerSub: { fontSize: Typography.sizes.sm, color: Colors.textMuted, marginTop: 2 },
+  header: { backgroundColor: Colors.surface, padding: Spacing.md, paddingBottom: Spacing.md, borderBottomWidth: 1, borderBottomColor: Colors.borderLight },
+  headerAccent: { position: 'absolute', top: 0, left: 0, right: 0, height: 3, backgroundColor: Colors.primary },
+  headerTitle: { fontSize: 28, fontFamily: 'Georgia', fontWeight: '800', color: Colors.textPrimary, marginTop: Spacing.xs },
+  headerSub: { fontSize: Typography.sizes.xs, color: Colors.textMuted, marginTop: 2 },
 
   // Filter Cards
   filterCard: { width: 110, borderRadius: Radius.xl, backgroundColor: Colors.surface, borderWidth: 1.5, borderColor: Colors.border, padding: Spacing.md, alignItems: 'center', gap: 4, ...Shadow.sm },
@@ -618,7 +622,7 @@ const s = StyleSheet.create({
   chipTextActive: { color: Colors.textInverse, fontWeight: '600' },
   tripCard: { backgroundColor: Colors.surface, borderRadius: Radius.xl, marginBottom: Spacing.md, ...Shadow.md, overflow: 'hidden' },
   tripCover: { width: '100%', height: 190 },
-  tripCoverFallback: { backgroundColor: Colors.primaryFaint, alignItems: 'center', justifyContent: 'center' },
+  tripCoverFallback: { backgroundColor: Colors.surfaceAlt, alignItems: 'center', justifyContent: 'center' },
   tierPill: { borderRadius: Radius.full, paddingHorizontal: 10, paddingVertical: 4 },
   tierPillText: { color: '#fff', fontSize: 11, fontWeight: '700' },
   reliabilityBadge: { backgroundColor: 'rgba(0,0,0,0.55)', borderRadius: Radius.full, paddingHorizontal: 10, paddingVertical: 4 },
